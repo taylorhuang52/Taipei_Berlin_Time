@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>台北 ✕ 柏林 — 雙城時鐘</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#e8b64c;
+  --disp:'Space Grotesk','Noto Sans TC',sans-serif;
+  --sans:'Noto Sans TC','Space Grotesk',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{background:#07090d}
+body{min-height:100vh;min-height:100svh;font-family:var(--sans)}
+.stage{display:flex;flex-wrap:wrap;min-height:100vh;min-height:100svh}
+.city{position:relative;flex:1 1 480px;min-height:560px;overflow:hidden;
+  display:flex;flex-direction:column;padding:clamp(20px,3vh,34px) clamp(22px,3.5vw,46px) 0;
+  animation:rise .9s cubic-bezier(.2,.7,.2,1) both;cursor:default}
+.city.berlin{animation-delay:.14s}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.city:hover .card{transform:translateY(-3px)}
+
+/* ---- 天空 ---- */
+.sky{position:absolute;inset:0;transition:background 1.4s ease;z-index:0}
+.city:hover .sky{filter:saturate(1.14) brightness(1.04)}
+.stars{position:absolute;top:0;left:0;width:100%;height:62%;z-index:1;
+  opacity:0;transition:opacity 1.2s}
+.stars i{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;
+  animation:tw var(--d,3s) ease-in-out var(--dl,0s) infinite alternate}
+@keyframes tw{from{opacity:.15;transform:scale(.7)}to{opacity:.95;transform:scale(1.2)}}
+.clouds{position:absolute;top:10%;left:0;width:100%;height:52%;z-index:1;
+  opacity:0;transition:opacity 1.2s;
+  background:
+    radial-gradient(58% 62% at 24% 46%,rgba(255,255,255,.34),transparent 70%),
+    radial-gradient(40% 55% at 66% 30%,rgba(255,255,255,.26),transparent 70%),
+    radial-gradient(52% 58% at 88% 62%,rgba(255,255,255,.3),transparent 72%);
+  animation:drift 32s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translateX(4.5%)}}
+.celestial{position:absolute;width:38px;height:38px;margin:-19px;z-index:1;
+  border-radius:50%;transition:background .9s,box-shadow .9s,opacity .9s}
+.celestial.sun{background:radial-gradient(circle at 35% 35%,#fff7d6,#ffd25e 62%,#f2a33c);
+  box-shadow:0 0 30px 10px rgba(255,196,90,.4),0 0 70px 26px rgba(255,170,60,.16)}
+.celestial.moon{background:radial-gradient(circle at 62% 36%,#f2f5fa,#cfd8e6 72%,#a8b4c8);
+  box-shadow:0 0 20px 6px rgba(214,228,255,.28)}
+
+/* ---- 卡片 ---- */
+.card{position:relative;z-index:3;width:min(470px,100%);margin-inline:auto;
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+  color:var(--ink,#fff);transition:transform .35s ease}
+.flag{display:flex;width:44px;height:26px;border-radius:3px;overflow:hidden;
+  box-shadow:0 3px 10px rgba(0,0,0,.4)}
+.flag i{flex:1}
+.city-name{margin-top:12px;font-weight:700;letter-spacing:.14em;text-shadow:0 2px 14px rgba(0,0,0,.35);
+  font-size:clamp(24px,2.7vw,33px)}
+.city-sub{font-family:var(--disp);font-size:11.5px;letter-spacing:.44em;margin-top:6px;
+  text-transform:uppercase;opacity:.8;font-weight:500}
+
+.dial{position:relative;width:clamp(190px,24vmin,252px);aspect-ratio:1;margin:clamp(14px,2.5vh,24px) 0 12px}
+.dial::before{content:'';position:absolute;inset:0;border-radius:50%;background:rgba(255,255,255,.09)}
+.face{position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle at 50% 40%,rgba(255,255,255,.16),rgba(255,255,255,.04) 56%,rgba(0,0,0,.28));
+  box-shadow:0 18px 44px rgba(0,0,0,.35),inset 0 0 0 1px rgba(255,255,255,.3),inset 0 2px 26px rgba(0,0,0,.22)}
+.face svg{position:absolute;inset:0;width:100%;height:100%}
+.face line{stroke:currentColor;stroke-width:1.6;stroke-linecap:round;opacity:.55}
+.face line.mj{stroke-width:2.8;opacity:.92}
+.hands{position:absolute;inset:0}
+.hands span{position:absolute;left:50%;bottom:50%;transform-origin:50% 100%}
+.h{width:5.5px;height:26%;margin-left:-2.75px;background:currentColor;border-radius:4px 4px 2px 2px;opacity:.95}
+.m{width:3.5px;height:37%;margin-left:-1.75px;background:currentColor;border-radius:3px;opacity:.92}
+.s{width:2px;height:46%;margin-left:-1px;background:var(--accent);border-radius:2px;
+  box-shadow:0 0 8px var(--accent)}
+.s::after{content:'';position:absolute;left:50%;bottom:-14%;width:7px;height:7px;
+  margin-left:-3.5px;border-radius:50%;background:var(--accent)}
+.cap{position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px;
+  border-radius:50%;background:currentColor;box-shadow:0 0 0 2.5px rgba(0,0,0,.3)}
+
+.digital .time{font-family:var(--disp);font-weight:700;font-variant-numeric:tabular-nums;
+  font-size:clamp(46px,5.6vw,66px);line-height:1.05;letter-spacing:.01em;
+  text-shadow:0 3px 26px rgba(0,0,0,.42)}
+.digital .time span{display:inline-block}
+.digital .sep{animation:blink 2s ease-in-out infinite;margin:0 1px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.28}}
+.ampm{font-size:.3em;font-weight:600;vertical-align:super;opacity:.8;letter-spacing:.08em}
+.date{margin-top:9px;font-weight:500;font-size:clamp(13.5px,1.3vw,16.5px);opacity:.92;
+  text-shadow:0 1px 10px rgba(0,0,0,.35)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:13px 0 8px}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:999px;
+  background:rgba(10,14,22,.34);border:1px solid rgba(255,255,255,.3);
+  font-size:12.5px;letter-spacing:.03em}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--accent);
+  box-shadow:0 0 10px var(--accent)}
+
+/* ---- 天際線 ---- */
+.skyline{position:relative;z-index:2;margin-top:auto;height:clamp(120px,20vh,216px);pointer-events:none}
+.city.taipei .skyline svg{position:absolute;bottom:0;left:-5%;height:100%;width:auto;min-width:76%}
+.city.berlin .skyline svg{position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  height:86%;width:112%;min-width:640px}
+.skyline svg{display:block;fill:#05070c}
+.win{fill:#ffce6e;opacity:0;animation:winp 4s ease-in-out var(--wd,0s) infinite alternate}
+@keyframes winp{from{opacity:.06}to{opacity:.92}}
+
+/* ---- 底部資訊橋 ---- */
+.bridge{position:relative;z-index:6;width:100%;flex-basis:100%;
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px 22px;
+  padding:15px clamp(16px,4vw,40px) 18px;
+  background:linear-gradient(180deg,#0b0f17,#07090d);
+  border-top:1px solid rgba(255,255,255,.08);color:#cfd6e2;font-size:13.5px}
+.germanflag{display:inline-flex;width:21px;height:14px;border-radius:2px;overflow:hidden;vertical-align:-2px}
+.germanflag i{flex:1}
+.bridge .label{color:#7f8aa0;margin-right:8px;font-size:12px;letter-spacing:.18em}
+#offsetBig{font-family:var(--disp);font-weight:700;font-size:23px;color:#fff;
+  margin:0 8px;transition:color .3s}
+.bridge:hover #offsetBig{color:var(--gold)}
+#offsetNote{color:#9aa5ba}
+.status{display:inline-flex;align-items:center;gap:8px}
+.pulse{width:7px;height:7px;border-radius:50%;background:#54d67c;animation:pulse 1.8s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(84,214,124,.5)}70%{box-shadow:0 0 0 8px rgba(84,214,124,0)}100%{box-shadow:0 0 0 0 rgba(84,214,124,0)}}
+
+/* ---- 城市色系 ---- */
+.city.taipei{--accent:#ff8a4a;--ink:#fff}
+.city.berlin{--accent:#ffd23f;--ink:#fff}
+
+@media(max-width:720px){
+  .city{min-height:500px}
+  .city.berlin .skyline svg{min-width:520px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<main class="stage">
+
+  <!-- ═══ 台北 ═══ -->
+  <section class="city taipei" data-tz="Asia/Taipei">
+    <div class="sky" data-sky></div>
+    <div class="stars" data-stars></div>
+    <div class="clouds" data-clouds></div>
+    <div class="celestial" data-celestial></div>
+    <div class="card">
+      <div class="flag" aria-hidden="true"><i style="background:#fe0000"></i><i style="background:#000095"></i><i style="background:#fff"></i></div>
+      <h1 class="city-name">台北</h1>
+      <p class="city-sub">Taipei・UTC+8</p>
+      <div class="dial">
+        <div class="face" data-face></div>
+        <div class="hands">
+          <span class="h" data-h></span><span class="m" data-m></span>
+          <span class="s" data-s></span><i class="cap"></i>
+        </div>
+      </div>
+      <div class="digital">
+        <p class="time"><span data-hh></span><span class="sep">:</span><span data-mm></span><span class="sep">:</span><span data-ss></span></p>
+        <p class="date" data-date></p>
+      </div>
+      <div class="chips">
+        <span class="chip"><i class="dot"></i><span data-utcoff></span></span>
+        <span class="chip" data-dst></span>
+      </div>
+    </div>
+    <div class="skyline" aria-hidden="true">
+      <svg viewBox="0 0 640 240" xmlns="http://www.w3.org/2000/svg">
+        <rect x="-30" y="228" width="700" height="14"/>
+        <path d="M0,230 V200 Q10,196 18,200 Q26,192 34,199 Q44,194 52,201 L60,230 Z"/>
+        <path d="M560,230 V196 Q572,190 584,197 Q596,188 610,196 Q622,192 640,199 L640,230 Z"/>
+        <rect x="44" y="170" width="58" height="60"/>
+        <rect x="72" y="152" width="10" height="18"/>
+        <rect x="112" y="140" width="42" height="90"/>
+        <rect x="158" y="186" width="66" height="44"/>
+        <rect x="232" y="168" width="36" height="62"/>
+        <rect x="408" y="178" width="40" height="52"/>
+        <rect x="454" y="150" width="46" height="80"/>
+        <rect x="506" y="172" width="38" height="58"/>
+        <g class="wins" data-wins data-x0="120" data-y0="150" data-cols="4" data-rows="8" data-gx="9" data-gy="10" data-w="4" data-h="5"></g>
+        <g class="wins" data-wins data-x0="462" data-y0="160" data-cols="4" data-rows="7" data-gx="10" data-gy="10" data-w="5" data-h="5"></g>
+        <!-- 台北101 -->
+        <rect x="330" y="34" width="4" height="36"/>
+        <path d="M306,72 L338,72 L333,44 L311,44 Z"/>
+        <path d="M296,104 L348,104 L341,72 L303,72 Z"/>
+        <path d="M290,134 L354,134 L347,104 L297,104 Z"/>
+        <path d="M284,164 L360,164 L352,134 L292,134 Z"/>
+        <path d="M278,194 L366,194 L357,164 L287,164 Z"/>
+        <path d="M272,230 L372,230 L362,194 L282,194 Z"/>
+        <g class="wins" data-wins data-x0="310" data-y0="198" data-cols="5" data-rows="2" data-gx="6" data-gy="8" data-w="3.5" data-h="4"></g>
+        <circle class="win" cx="332" cy="34" r="2.6" style="--wd:.8s"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ═══ 柏林 ═══ -->
+  <section class="city berlin" data-tz="Europe/Berlin">
+    <div class="sky" data-sky></div>
+    <div class="stars" data-stars></div>
+    <div class="clouds" data-clouds></div>
+    <div class="celestial" data-celestial></div>
+    <div class="card">
+      <div class="flag" aria-hidden="true"><i style="background:#000"></i><i style="background:#dd0000"></i><i style="background:#ffce00"></i></div>
+      <h1 class="city-name">柏林</h1>
+      <p class="city-sub">Berlin・Europe/Berlin</p>
+      <div class="dial">
+        <div class="face" data-face></div>
+        <div class="hands">
+          <span class="h" data-h></span><span class="m" data-m></span>
+          <span class="s" data-s></span><i class="cap"></i>
+        </div>
+      </div>
+      <div class="digital">
+        <p class="time"><span data-hh></span><span class="sep">.</span><span data-mm></span><span class="sep">.</span><span data-ss></span></p>
+        <p class="date" data-date></p>
+      </div>
+      <div class="chips">
+        <span class="chip"><i class="dot"></i><span data-utcoff></span></span>
+        <span class="chip" data-dst></span>
+      </div>
+    </div>
+    <div class="skyline" aria-hidden="true">
+      <svg viewBox="0 0 640 240" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax slice">
+        <rect x="-20" y="226" width="680" height="14"/>
+        <path d="M0,226 V186 Q8,178 14,186 Q22,172 30,184 Q36,178 42,186 L48,226 Z"/>
+        <rect x="52" y="168" width="70" height="58"/>
+        <rect x="526" y="176" width="60" height="50"/>
+        <g class="wins" data-wins data-x0="62" data-y0="176" data-cols="5" data-rows="3" data-gx="12" data-gy="13" data-w="5" data-h="6"></g>
+        <!-- 布蘭登堡門 -->
+        <rect x="206" y="104" width="228" height="14"/>
+        <rect x="206" y="118" width="228" height="6" fill-rule="evenodd" d="M206,118h228v6h-228z"/>
+        <g>
+          <rect x="208" y="122" width="14" height="104"/><rect x="242" y="122" width="14" height="104"/>
+          <rect x="276" y="122" width="14" height="104"/><rect x="310" y="122" width="14" height="104"/>
+          <rect x="344" y="122" width="14" height="104"/><rect x="378" y="122" width="14" height="104"/>
+          <rect x="412" y="122" width="14" height="104"/>
+        </g>
+        <g>
+          <rect x="204" y="118" width="22" height="6"/><rect x="238" y="118" width="22" height="6"/>
+          <rect x="272" y="118" width="22" height="6"/><rect x="306" y="118" width="22" height="6"/>
+          <rect x="340" y="118" width="22" height="6"/><rect x="374" y="118" width="22" height="6"/>
+          <rect x="408" y="118" width="22" height="6"/>
+        </g>
+        <rect x="200" y="96" width="240" height="8"/>
+        <rect x="222" y="78" width="196" height="18"/>
+        <rect x="216" y="74" width="208" height="5"/>
+        <!-- 四馬戰車（剪影） -->
+        <rect x="296" y="64" width="48" height="8"/>
+        <path d="M322,64 L322,46 L327,46 L327,64 Z"/>
+        <circle cx="324.5" cy="42" r="4"/>
+        <path d="M300,64 q4,-9 8,0 M310,64 q4,-9 8,0 M322,64 q4,-9 8,0 M332,64 q4,-9 8,0" fill="none" stroke="#05070c" stroke-width="5"/>
+        <g class="wins" data-wins data-x0="534" data-y0="184" data-cols="4" data-rows="2" data-gx="13" data-gy="14" data-w="5" data-h="6"></g>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ═══ 時差橋 ═══ -->
+  <footer class="bridge">
+    <div class="flag" style="width:30px;height:18px" aria-hidden="true"><i style="background:#fe0000"></i><i style="background:#000095"></i><i style="background:#fff"></i></div>
+    <span class="label">時差 DIFFERENCE</span>
+    <span id="offsetBig">＋6 小時</span>
+    <span id="offsetNote"></span>
+    <div class="germanflag" aria-hidden="true"><i style="background:#000"></i><i style="background:#dd0000"></i><i style="background:#ffce00"></i></div>
+    <span class="status"><i class="pulse"></i>即時同步・IANA 時區自動換算（含 Sommerzeit）</span>
+  </footer>
+</main>
+
+<script>
+(function(){
+'use strict';
+const $  = (s,c)=> (c||document).querySelector(s);
+const $$ = (s,c)=> Array.from((c||document).querySelectorAll(s));
+const pad = n => String(n).padStart(2,'0');
+const CJK = ['日','一','二','三','四','五','六'];
+const MON_DE = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const WD_DE  = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+
+const fmtParts = {};
+function getParts(tz, ms){
+  fmtParts[tz] = fmtParts[tz] || new Intl.DateTimeFormat('en-US',{
+    timeZone:tz, hour12:false, weekday:'short',
+    year:'numeric', month:'numeric', day:'numeric',
+    hour:'numeric', minute:'numeric', second:'numeric'});
+  const o = {};
+  for(const p of fmtParts[tz].formatToParts(new Date(ms)))
+    if(p.type!=='literal') o[p.type]=p.value;
+  const h = +o.hour % 24;
+  let utc = Date.UTC(+o.year, +o.month-1, +o.day, h, +o.minute, +o.second);
+  return {
+    y:+o.year, mo:+o.month, d:+o.day, wd:o.weekday,
+    h, mi:+o.minute, se:+o.second,
+    offset: Math.round((utc - ms)/60000)          // 該時區目前 UTC 偏移（分鐘）
+  };
+}
+/* 用 1 月／7 月的偏移比較，自動判斷目前是否處於夏令時間 */
+function isDST(tz, ms){
+  const y = new Date(ms).getUTCFullYear();
+  const off = getParts(tz, ms).offset;
+  return off > Math.min(getParts(tz, Date.UTC(y,0,15)).offset,
+                        getParts(tz, Date.UTC(y,6,15)).offset);
+}
+
+/* ---- 顏色工具 ---- */
+const hex2rgb = h => { h=h.replace('#',''); return [0,2,4].map(i=>parseInt(h.slice(i,i+2),16)); };
+const mix = (a,b,t)=>[0,1,2].map(i=>Math.round(a[i]+(b[i]-a[i])*t));
+const rgb = c=>`rgb(${c[0]},${c[1]},${c[2]})`;
+function mixMulti(stops,t){
+  for(let i=0;i<stops.length-1;i++){
+    const [p0,c0]=stops[i],[p1,c1]=stops[i+1];
+    if(t<=p1) return mix(c0,c1,(t-p0)/(p1-p0||1));
+  }
+  return stops[stops.length-1][1];
+}
+const SKY = {
+  top:[[0,[9,14,32]],[4.6,[9,14,32]],[6.3,[43,54,104]],[8.5,[84,136,205]],[16,[96,148,214]],[18.4,[64,72,134]],[20.2,[16,20,48]],[21.6,[9,14,32]],[24,[9,14,32]]],
+  bot:[[0,[16,22,46]],[4.6,[18,24,50]],[6.3,[196,110,80]],[8.5,[168,204,236]],[16,[178,210,238]],[18.4,[232,120,74]],[20.2,[42,38,74]],[21.6,[16,22,46]],[24,[16,22,46]]]
+};
+function skyAt(t){
+  return `linear-gradient(180deg, ${rgb(mixMulti(SKY.top,t))} 0%, ${rgb(mixMulti(SKY.bot,t))} 100%)`;
+}
+
+/* ---- 初始化面板 ---- */
+function buildFace(face, tz){
+  const NS='http://www.w3.org/2000/svg', svg=document.createElementNS(NS,'svg');
+  svg.setAttribute('viewBox','0 0 100 100');
+  for(let i=0;i<60;i++){
+    const maj=i%5===0, a=i*6*Math.PI/180;
+    const r1=maj?39.5:42.5, r2=46;
+    const L=document.createElementNS(NS,'line');
+    L.setAttribute('x1',50+r1*Math.sin(a)); L.setAttribute('y1',50-r1*Math.cos(a));
+    L.setAttribute('x2',50+r2*Math.sin(a)); L.setAttribute('y2',50-r2*Math.cos(a));
+    if(maj) L.setAttribute('class','mj');
+    svg.appendChild(L);
+  }
+  face.appendChild(svg);
+  const label = document.createElement('div');
+  label.style.cssText='position:absolute;left:50%;top:66%;transform:translateX(-50%);font:600 9px var(--disp);letter-spacing:.32em;opacity:.62';
+  label.textContent = tz==='Asia/Taipei' ? 'TAIPEI' : 'BERLIN';
+  face.appendChild(label);
+}
+function seedStars(el,n){
+  for(let i=0;i<n;i++){
+    const s=document.createElement('i');
+    s.style.left=Math.random()*100+'%';
+    s.style.top=Math.random()*100+'%';
+    if(Math.random()<.25){ s.style.width='3px'; s.style.height='3px'; }
+    s.style.setProperty('--d',(2+Math.random()*3.2)+'s');
+    s.style.setProperty('--dl',(Math.random()*4)+'s');
+    el.appendChild(s);
+  }
+}
+function seedWindows(sec){
+  $$('g[data-wins]',sec).forEach(g=>{
+    const NS='http://www.w3.org/2000/svg';
+    const x0=+g.dataset.x0, y0=+g.dataset.y0,
+          c=+g.dataset.cols, r=+g.dataset.rows,
+          gx=+g.dataset.gx, gy=+g.dataset.gy,
+          w=+g.dataset.w, h=+g.dataset.h;
+    for(let i=0;i<c;i++) for(let j=0;j<r;j++){
+      if(Math.random()<.42) continue;               // 隨機亮燈
+      const rect=document.createElementNS(NS,'rect');
+      rect.setAttribute('x',x0+i*gx); rect.setAttribute('y',y0+j*gy);
+      rect.setAttribute('width',w); rect.setAttribute('height',h);
+      rect.setAttribute('rx','0.6'); rect.setAttribute('class','win');
+      rect.style.setProperty('--wd',(Math.random()*5)+'s');
+      g.appendChild(rect);
+    }
+  });
+}
+
+const cities = $$('.city').map(sec=>{
+  const tz = sec.dataset.tz;
+  const ui = {
+    sec, tz,
+    sky:$('[data-sky]',sec), stars:$('[data-stars]',sec), clouds:$('[data-clouds]',sec),
+    cel:$('[data-celestial]',sec),
+    hh:$('[data-hh]',sec), mm:$('[data-mm]',sec), ss:$('[data-ss]',sec),
+    date:$('[data-date]',sec), utcoff:$('[data-utcoff]',sec), dst:$('[data-dst]',sec),
+    H:$('[data-h]',sec), M:$('[data-m]',sec), S:$('[data-s]',sec)
+  };
+  buildFace($('[data-face]',sec), tz);
+  seedStars(ui.stars, tz==='Asia/Taipei'?56:46);
+  seedWindows(sec);
+  return ui;
+});
+const offBig=$('#offsetBig'), offNote=$('#offsetNote');
+const prev = cities.map(()=>({hh:'',mm:'',ss:'',date:'',off:NaN,dst:null,offStr:'',ang:null,trans:false,sky:''}));
+
+/* ---- 每格更新 ---- */
+function paint(city,i,ms){
+  const p = getParts(city.tz, ms), t = p.h+p.mi/60+p.se/3600;
+  const pv = prev[i];
+
+  /* 指針（角度允許 >360，避免跨日回繞） */
+  let degH,degM,degS;
+  if(!pv.ang){
+    degS=(p.se+ms%1000/1000)*6; degM=(p.mi+p.se/60)*6; degH=((p.h%12)+p.mi/60+p.se/3600)*30;
+  }else{
+    const step=(ms-pv.ms)/1000;
+    degS=pv.ang[0]+step*6; degM=pv.ang[1]+step*.1; degH=pv.ang[2]+step/120;
+  }
+  pv.ang=[degS,degM,degH]; pv.ms=ms;
+  city.S.style.transition = pv.trans ? '' : 'none';
+  city.H.style.transform=`rotate(${degH}deg)`;
+  city.M.style.transform=`rotate(${degM}deg)`;
+  city.S.style.transform=`rotate(${degS}deg)`;
+  pv.trans=true;
+
+  /* 數位時間 */
+  if(p.hh!==pv.hh){
+    city.hh.textContent = city.tz==='Asia/Taipei' ? pad(p.h) : String(p.h); // 德國惯用 24 小時、不補零
+    pv.hh=p.h;
+  }
+  if(p.mi!==pv.mm){ city.mm.textContent=pad(p.mi); pv.mm=p.mi; }
+  if(p.se!==pv.ss){ city.ss.textContent=pad(p.se); pv.ss=p.se; }
+
+  /* 日期 */
+  const dk=`${p.d}-${p.mo}-${p.wd}`;
+  if(dk!==pv.date){
+    if(city.tz==='Asia/Taipei'){
+      city.date.textContent=`${p.y}年${p.mo}月${p.d}日 星期${CJK[+WD_DE.indexOf?0:0]||''}${['日','一','二','三','四','五','六'][['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(p.wd)]}`;
+    }else{
+      city.date.textContent=`${WD_DE[['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(p.wd)]}, ${p.d}. ${MON_DE[p.mo-1]} ${p.y}`;
+    }
+    pv.date=dk;
+  }
+
+  /* UTC 偏移與夏令狀態 */
+  const sign=p.offset<0?'−':'＋', ah=Math.abs(p.offset)/60;
+  const offStr=`UTC${sign}${Number.isInteger(ah)?ah:ah.toFixed(1).replace('.',',')}`;
+  if(offStr!==pv.offStr){ city.utcoff.textContent=offStr; pv.offStr=offStr; }
+
+  const dst=isDST(city.tz,ms);
+  if(dst!==pv.dst){
+    let txt;
+    if(city.tz==='Asia/Taipei'){
+      txt='無夏令時間・全年固定';
+    }else{
+      txt = dst ? '☀ Sommerzeit・夏令時間中' : '❄ Winterzeit・標準時間';
+      /* 順帶顯示下一次切換（每年3月/10月最後一個週日的 01:00 UTC） */
+      const y=p.y;
+      let lastSun=(m)=>{ let d=new Date(Date.UTC(y,m,31,1)); while(d.getUTCDay()!==0)d.setUTCDate(d.getUTCDate()-1); return d; };
+      const next = (ms>=lastSun(2).getTime()) ? lastSun(9) : lastSun(2);
+      const label = next.getUTCMonth()===2?'3':'10';
+      txt += `・下次切換 ${label}/${next.getUTCDate()}`;
+    }
+    city.dst.textContent=txt; pv.dst=dst;
+  }
+
+  /* 天空、日夜、星星、雲 */
+  const sky=skyAt(t);
+  if(sky!==pv.sky){ city.sky.style.background=sky; pv.sky=sky; }
+  const night = t<5.4||t>18.9, dawnDusk=(t>=5.4&&t<8)||(t>16.8&&t<=18.9);
+  city.stars.style.opacity = night?1:0;
+  city.clouds.style.opacity = (!night&&!dawnDusk)?.8:(dawnDusk?.3:0);
+
+  /* 太陽／月亮沿弧線移動 */
+  const isDay = t>=6&&t<18;
+  let frac,el2;
+  if(isDay){ frac=(t-6)/12; el2=Math.sin(Math.PI*frac)*62+12; }
+  else{
+    const tn=(t>=18)?t-18:t+6; frac=tn/12; el2=Math.sin(Math.PI*frac)*48+10;
+    city.cel.classList.remove('sun'); city.cel.classList.add('moon');
+  }
+  if(isDay){ city.cel.classList.add('sun'); city.cel.classList.remove('moon'); }
+  city.cel.style.left=(7+frac*86)+'%';
+  city.cel.style.top=(74-el2)+'%';
+  city.cel.style.opacity=(night&&el2<6)?0:1;
+}
+
+/* ---- 時差橋 ---- */
+function bridge(a,b){
+  const diff=(getParts('Europe/Berlin',Date.now()).offset-getParts('Asia/Taipei',Date.now()).offset)/60;
+  offBig.textContent=`＋${diff} 小時`;
+  const dstDE=isDST('Europe/Berlin',Date.now());
+  offNote.textContent = `柏林 ${dstDE?'CEST（UTC+2・夏令）':'CET（UTC+1・冬令）'} ・ 台北 CST（UTC+8・全年固定）`;
+}
+
+/* ---- 主迴圈 ---- */
+function tick(){
+  const ms=Date.now();
+  cities.forEach((c,i)=>paint(c,i,ms));
+  bridge();
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
