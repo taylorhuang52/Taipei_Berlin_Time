@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>雙城時鐘 — 世界時間</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#e8b64c;
+  --disp:'Space Grotesk','Noto Sans TC',sans-serif;
+  --sans:'Noto Sans TC','Space Grotesk',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{background:#07090d}
+body{min-height:100vh;min-height:100svh;font-family:var(--sans)}
+.stage{display:flex;flex-wrap:wrap;min-height:100vh;min-height:100svh}
+.city{position:relative;flex:1 1 480px;min-height:560px;overflow:hidden;
+  display:flex;flex-direction:column;padding:clamp(20px,3vh,34px) clamp(22px,3.5vw,46px) 0;
+  animation:rise .9s cubic-bezier(.2,.7,.2,1) both;cursor:default}
+.city[data-slot="1"]{animation-delay:.14s}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.city:hover .card{transform:translateY(-3px)}
+.city.swap .card,.city.swap .skyline svg{animation:swapin .55s cubic-bezier(.2,.7,.2,1)}
+@keyframes swapin{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* ---- 天空 ---- */
+.sky{position:absolute;inset:0;transition:background 1.4s ease;z-index:0}
+.city:hover .sky{filter:saturate(1.14) brightness(1.04)}
+.stars{position:absolute;top:0;left:0;width:100%;height:62%;z-index:1;opacity:0;transition:opacity 1.2s}
+.stars i{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;
+  animation:tw var(--d,3s) ease-in-out var(--dl,0s) infinite alternate}
+@keyframes tw{from{opacity:.15;transform:scale(.7)}to{opacity:.95;transform:scale(1.2)}}
+.clouds{position:absolute;top:10%;left:0;width:100%;height:52%;z-index:1;opacity:0;transition:opacity 1.2s;
+  background:
+    radial-gradient(58% 62% at 24% 46%,rgba(255,255,255,.34),transparent 70%),
+    radial-gradient(40% 55% at 66% 30%,rgba(255,255,255,.26),transparent 70%),
+    radial-gradient(52% 58% at 88% 62%,rgba(255,255,255,.3),transparent 72%);
+  animation:drift 32s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translateX(4.5%)}}
+.celestial{position:absolute;width:38px;height:38px;margin:-19px;z-index:1;border-radius:50%;
+  transition:background .9s,box-shadow .9s,opacity .9s}
+.celestial.sun{background:radial-gradient(circle at 35% 35%,#fff7d6,#ffd25e 62%,#f2a33c);
+  box-shadow:0 0 30px 10px rgba(255,196,90,.4),0 0 70px 26px rgba(255,170,60,.16)}
+.celestial.moon{background:radial-gradient(circle at 62% 36%,#f2f5fa,#cfd8e6 72%,#a8b4c8);
+  box-shadow:0 0 20px 6px rgba(214,228,255,.28)}
+
+/* ---- 城市切換器 ---- */
+.picker{position:relative;z-index:5;display:flex;gap:7px;width:min(620px,100%);margin:0 auto 4px;
+  overflow-x:auto;padding:2px 2px 10px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.3) transparent}
+.picker::-webkit-scrollbar{height:6px}
+.picker::-webkit-scrollbar-thumb{background:rgba(255,255,255,.25);border-radius:3px}
+.pk-btn{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;padding:6px 12px;
+  border-radius:999px;border:1px solid rgba(255,255,255,.24);background:rgba(8,12,20,.4);
+  color:#fff;font:500 12.5px var(--sans);letter-spacing:.04em;cursor:pointer;white-space:nowrap;
+  transition:transform .2s,background .2s,border-color .2s,box-shadow .2s}
+.pk-btn:hover{transform:translateY(-2px);background:rgba(255,255,255,.16)}
+.pk-btn[aria-pressed="true"]{border-color:var(--accent,#fff);background:rgba(255,255,255,.22);
+  box-shadow:0 0 14px -2px var(--accent,#fff)}
+.pk-flag{width:20px;height:13.4px;border-radius:2px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.45)}
+.pk-flag svg,.flag svg{display:block;width:100%;height:100%}
+
+/* ---- 卡片 ---- */
+.card{position:relative;z-index:3;width:min(470px,100%);margin-inline:auto;
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+  color:#fff;transition:transform .35s ease}
+.flag{display:flex;width:45px;height:30px;border-radius:3px;overflow:hidden;
+  box-shadow:0 3px 10px rgba(0,0,0,.4)}
+.city-name{margin-top:12px;font-weight:700;letter-spacing:.14em;text-shadow:0 2px 14px rgba(0,0,0,.35);
+  font-size:clamp(24px,2.7vw,33px)}
+.city-sub{font-family:var(--disp);font-size:11px;letter-spacing:.3em;margin-top:6px;
+  text-transform:uppercase;opacity:.8;font-weight:500}
+.dial{position:relative;width:clamp(190px,24vmin,252px);aspect-ratio:1;margin:clamp(14px,2.5vh,24px) 0 12px}
+.dial::before{content:'';position:absolute;inset:0;border-radius:50%;background:rgba(255,255,255,.09)}
+.face{position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle at 50% 40%,rgba(255,255,255,.16),rgba(255,255,255,.04) 56%,rgba(0,0,0,.28));
+  box-shadow:0 18px 44px rgba(0,0,0,.35),inset 0 0 0 1px rgba(255,255,255,.3),inset 0 2px 26px rgba(0,0,0,.22)}
+.face svg{position:absolute;inset:0;width:100%;height:100%}
+.face line{stroke:currentColor;stroke-width:1.6;stroke-linecap:round;opacity:.55}
+.face line.mj{stroke-width:2.8;opacity:.92}
+.hands{position:absolute;inset:0}
+.hands span{position:absolute;left:50%;bottom:50%;transform-origin:50% 100%}
+.h{width:5.5px;height:26%;margin-left:-2.75px;background:currentColor;border-radius:4px 4px 2px 2px;opacity:.95}
+.m{width:3.5px;height:37%;margin-left:-1.75px;background:currentColor;border-radius:3px;opacity:.92}
+.s{width:2px;height:46%;margin-left:-1px;background:var(--accent);border-radius:2px;box-shadow:0 0 8px var(--accent)}
+.s::after{content:'';position:absolute;left:50%;bottom:-14%;width:7px;height:7px;
+  margin-left:-3.5px;border-radius:50%;background:var(--accent)}
+.cap{position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px;
+  border-radius:50%;background:currentColor;box-shadow:0 0 0 2.5px rgba(0,0,0,.3)}
+.digital .time{font-family:var(--disp);font-weight:700;font-variant-numeric:tabular-nums;
+  font-size:clamp(44px,5.4vw,64px);line-height:1.05;letter-spacing:.01em;
+  text-shadow:0 3px 26px rgba(0,0,0,.42)}
+.digital .time span{display:inline-block}
+.digital .sep{animation:blink 2s ease-in-out infinite;margin:0 1px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.28}}
+.ampm{font-size:.3em;font-weight:600;vertical-align:super;margin-left:.4em;letter-spacing:.08em;opacity:.85}
+.date{margin-top:9px;font-weight:500;font-size:clamp(13.5px,1.3vw,16.5px);opacity:.92;
+  text-shadow:0 1px 10px rgba(0,0,0,.35)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:13px 0 8px}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:999px;
+  background:rgba(10,14,22,.34);border:1px solid rgba(255,255,255,.3);font-size:12.5px;letter-spacing:.03em}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+
+/* ---- 天際線 ---- */
+.skyline{position:relative;z-index:2;margin-top:auto;height:clamp(120px,20vh,216px);pointer-events:none}
+.skyline svg{position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  height:100%;width:auto;min-width:660px;fill:#05070c}
+.win{fill:#ffce6e;opacity:0;animation:winp 4s ease-in-out var(--wd,0s) infinite alternate}
+@keyframes winp{from{opacity:.06}to{opacity:.92}}
+
+/* ---- 底部資訊橋 ---- */
+.bridge{position:relative;z-index:6;width:100%;flex-basis:100%;
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px 22px;
+  padding:15px clamp(16px,4vw,40px) 18px;
+  background:linear-gradient(180deg,#0b0f17,#07090d);
+  border-top:1px solid rgba(255,255,255,.08);color:#cfd6e2;font-size:13.5px}
+.bridge .flag{width:30px;height:20px}
+.bridge .label{color:#7f8aa0;margin-right:8px;font-size:12px;letter-spacing:.18em}
+#offsetBig{font-family:var(--disp);font-weight:700;font-size:23px;color:#fff;margin:0 8px;transition:color .3s}
+.bridge:hover #offsetBig{color:var(--gold)}
+#offsetNote{color:#9aa5ba}
+.status{display:inline-flex;align-items:center;gap:8px}
+.pulse{width:7px;height:7px;border-radius:50%;background:#54d67c;animation:pulse 1.8s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(84,214,124,.5)}70%{box-shadow:0 0 0 8px rgba(84,214,124,0)}100%{box-shadow:0 0 0 0 rgba(84,214,124,0)}}
+
+@media(max-width:720px){.city{min-height:520px}}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<main class="stage">
+
+  <section class="city" data-slot="0">
+    <div class="sky" data-sky></div>
+    <div class="stars" data-stars></div>
+    <div class="clouds" data-clouds></div>
+    <div class="celestial" data-celestial></div>
+    <div class="picker" data-picker></div>
+    <div class="card">
+      <div class="flag" data-flag></div>
+      <h1 class="city-name"></h1>
+      <p class="city-sub"></p>
+      <div class="dial">
+        <div class="face" data-face></div>
+        <div class="hands">
+          <span class="h" data-h></span><span class="m" data-m></span>
+          <span class="s" data-s></span><i class="cap"></i>
+        </div>
+      </div>
+      <div class="digital">
+        <p class="time"><span data-hh></span><span class="sep">:</span><span data-mm></span><span class="sep">:</span><span data-ss></span><span class="ampm" data-ampm></span></p>
+        <p class="date" data-date></p>
+      </div>
+      <div class="chips">
+        <span class="chip"><i class="dot"></i><span data-utcoff></span></span>
+        <span class="chip" data-dst></span>
+      </div>
+    </div>
+    <div class="skyline" aria-hidden="true"></div>
+  </section>
+
+  <section class="city" data-slot="1">
+    <div class="sky" data-sky></div>
+    <div class="stars" data-stars></div>
+    <div class="clouds" data-clouds></div>
+    <div class="celestial" data-celestial></div>
+    <div class="picker" data-picker></div>
+    <div class="card">
+      <div class="flag" data-flag></div>
+      <h1 class="city-name"></h1>
+      <p class="city-sub"></p>
+      <div class="dial">
+        <div class="face" data-face></div>
+        <div class="hands">
+          <span class="h" data-h></span><span class="m" data-m></span>
+          <span class="s" data-s></span><i class="cap"></i>
+        </div>
+      </div>
+      <div class="digital">
+        <p class="time"><span data-hh></span><span class="sep">:</span><span data-mm></span><span class="sep">:</span><span data-ss></span><span class="ampm" data-ampm></span></p>
+        <p class="date" data-date></p>
+      </div>
+      <div class="chips">
+        <span class="chip"><i class="dot"></i><span data-utcoff></span></span>
+        <span class="chip" data-dst></span>
+      </div>
+    </div>
+    <div class="skyline" aria-hidden="true"></div>
+  </section>
+
+  <footer class="bridge">
+    <div class="flag" data-bflag="0"></div>
+    <span class="label">時差 DIFFERENCE</span>
+    <span id="offsetBig"></span>
+    <span id="offsetNote"></span>
+    <div class="flag" data-bflag="1"></div>
+    <span class="status"><i class="pulse"></i>即時同步・IANA 時區自動換算（含各國夏令時間）</span>
+  </footer>
+</main>
+
+<script>
+(function(){
+'use strict';
+const $=(s,c)=>(c||document).querySelector(s);
+const $$=(s,c)=>Array.from((c||document).querySelectorAll(s));
+const pad=n=>String(n).padStart(2,'0');
+const wrap=inner=>`<svg viewBox="0 0 30 20" preserveAspectRatio="none">${inner}</svg>`;
+
+/* ════════ 國旗（SVG） ════════ */
+function starPts(cx,cy,R,rot=0,N=5,ir=0.382){
+  const p=[];
+  for(let k=0;k<2*N;k++){
+    const r=k%2?R*ir:R, a=(-90+rot+k*180/N)*Math.PI/180;
+    p.push((cx+r*Math.cos(a)).toFixed(2)+','+(cy+r*Math.sin(a)).toFixed(2));
+  }
+  return p.join(' ');
+}
+const poly=(pts,f)=>`<polygon points="${pts}" fill="${f}"/>`;
+
+const flagCN=(()=>{
+  let s='<rect width="30" height="20" fill="#DE2910"/>'+poly(starPts(5,5,3),'#FFDE00');
+  [[10,2],[12,4],[12,7],[10,9]].forEach(([x,y])=>{
+    s+=poly(starPts(x,y,1,Math.atan2(5-y,5-x)*180/Math.PI+90),'#FFDE00');
+  });
+  const out=wrap(s); return ()=>out;
+})();
+const flagTW=(()=>{
+  let s='<rect width="30" height="20" fill="#FE0000"/><rect width="15" height="10" fill="#000095"/>';
+  const A=(r,d)=>[7.5+r*Math.sin(d*Math.PI/180),5-r*Math.cos(d*Math.PI/180)];
+  for(let k=0;k<12;k++){
+    const a=k*30,t=A(3.6,a),p1=A(1.85,a-14),p2=A(1.85,a+14);
+    s+=`<polygon points="${t[0].toFixed(2)},${t[1].toFixed(2)} ${p1[0].toFixed(2)},${p1[1].toFixed(2)} ${p2[0].toFixed(2)},${p2[1].toFixed(2)}" fill="#fff"/>`;
+  }
+  const out=wrap(s+'<circle cx="7.5" cy="5" r="1.85" fill="#fff"/>'); return ()=>out;
+})();
+const flagJP=()=>wrap('<rect width="30" height="20" fill="#FFFFFF"/><circle cx="15" cy="10" r="6" fill="#BC002D"/>');
+const flagGB=()=>wrap(
+  '<rect width="30" height="20" fill="#012169"/>'
+ +'<path d="M0,0L30,20M30,0L0,20" stroke="#FFFFFF" stroke-width="4.2"/>'
+ +'<path d="M0,0L30,20M30,0L0,20" stroke="#C8102E" stroke-width="1.7"/>'
+ +'<path d="M15,0V20M0,10H30" stroke="#FFFFFF" stroke-width="6.6"/>'
+ +'<path d="M15,0V20M0,10H30" stroke="#C8102E" stroke-width="3.8"/>');
+const flagFR=()=>wrap('<rect width="10" height="20" fill="#0055A4"/><rect x="10" width="10" height="20" fill="#FFFFFF"/><rect x="20" width="10" height="20" fill="#EF4135"/>');
+const flagDE=()=>wrap('<rect width="30" height="6.67" fill="#000000"/><rect y="6.67" width="30" height="6.67" fill="#DD0000"/><rect y="13.33" width="30" height="6.67" fill="#FFCE00"/>');
+const flagRU=()=>wrap('<rect width="30" height="6.67" fill="#FFFFFF"/><rect y="6.67" width="30" height="6.67" fill="#0039A6"/><rect y="13.33" width="30" height="6.67" fill="#D52B1E"/>');
+const flagUS=(()=>{
+  const sh=20/13; let s='<rect width="30" height="20" fill="#FFFFFF"/>';
+  for(let i=0;i<13;i+=2) s+=`<rect y="${(i*sh).toFixed(2)}" width="30" height="${sh.toFixed(2)}" fill="#B31942"/>`;
+  s+='<rect width="13.2" height="10.77" fill="#0A3161"/>';
+  for(let r=0;r<5;r++)for(let c=0;c<6;c++){
+    const x=1.6+c*2.1+(r%2?1.05:0), y=1.6+r*1.9;
+    if(x<12.6) s+=`<circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r=".5" fill="#fff"/>`;
+  }
+  const out=wrap(s); return ()=>out;
+})();
+const flagAU=(()=>{
+  let s='<rect width="30" height="20" fill="#012169"/>'
+  +'<path d="M0,0L15,10M15,0L0,10" stroke="#fff" stroke-width="2"/>'
+  +'<path d="M0,0L15,10M15,0L0,10" stroke="#C8102E" stroke-width=".9"/>'
+  +'<path d="M7.5,0V10M0,5H15" stroke="#fff" stroke-width="3.2"/>'
+  +'<path d="M7.5,0V10M0,5H15" stroke="#C8102E" stroke-width="1.8"/>'
+  +poly(starPts(7.5,15,2.7,0,7,.45),'#fff');
+  [[23,3.8,1.2],[19,8.6,1.2],[26.2,9.6,1.1],[22.8,16.4,1.3]].forEach(([x,y,r])=>s+=poly(starPts(x,y,r),'#fff'));
+  s+=poly(starPts(24.6,7.2,.65),'#fff');
+  const out=wrap(s); return ()=>out;
+})();
+const flagAE=()=>wrap(
+  '<rect width="30" height="20" fill="#FFFFFF"/>'
+ +'<rect width="30" height="6.67" fill="#00843D"/>'
+ +'<rect y="13.33" width="30" height="6.67" fill="#000000"/>'
+ +'<rect width="8" height="20" fill="#CE1126"/>');
+
+/* ════════ 天際線 ════════ */
+function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function rng(seed){let a=seed;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function winGrid(x0,y0,c,r,gx,gy,w,h){
+  let s='';
+  for(let i=0;i<c;i++)for(let j=0;j<r;j++){
+    if(Math.random()<.42)continue;
+    s+=`<rect class="win" style="--wd:${(Math.random()*6).toFixed(2)}s" x="${x0+i*gx}" y="${y0+j*gy}" width="${w}" height="${h}" rx=".6"/>`;
+  }
+  return s;
+}
+function filler(seed,tall=1){          /* 以城市名稱作種子的隨機樓群 */
+  const r=rng(hash(seed)); let s='';
+  const side=(x0,x1)=>{
+    let x=x0;
+    while(x<x1){
+      const w=24+r()*36, h=(46+r()*88)*tall, y=226-h;
+      s+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}"/>`;
+      if(r()<.3) s+=`<rect x="${(x+w/2-1.2).toFixed(1)}" y="${(y-10-r()*12).toFixed(1)}" width="2.4" height="${(10+r()*12).toFixed(1)}"/>`;
+      if(h>52){
+        const cols=Math.min(4,Math.floor(w/13)), rows=Math.min(6,Math.floor(h/16));
+        const gx=(w-6)/cols, gy=(h-10)/rows;
+        for(let i=0;i<cols;i++)for(let j=0;j<rows;j++){
+          if(r()<.55)continue;
+          s+=`<rect class="win" style="--wd:${(r()*6).toFixed(2)}s" x="${(x+4+i*gx).toFixed(1)}" y="${(y+6+j*gy).toFixed(1)}" width="4.5" height="5.5" rx=".6"/>`;
+        }
+      }
+      x+=w+4+r()*10;
+    }
+  };
+  side(-10,245); side(398,660);
+  return s;
+}
+const GROUND='<rect x="-30" y="226" width="700" height="14"/>';
+
+const skyBeijing=()=>{
+  let s='<rect x="14" y="180" width="48" height="46"/><rect x="236" y="196" width="52" height="30"/><rect x="570" y="190" width="54" height="36"/>';
+  s+=winGrid(22,188,3,3,13,13,5,6);
+  s+='<rect x="128.4" y="146" width="3.2" height="9"/><circle cx="130" cy="143" r="3.4"/>'
+   +'<path d="M110,170 Q130,150 150,170 Z"/><rect x="116" y="170" width="28" height="10"/>'
+   +'<path d="M94,186 Q130,162 166,186 Z"/><rect x="106" y="186" width="48" height="12"/>'
+   +'<path d="M78,204 Q130,176 182,204 Z"/><rect x="90" y="204" width="80" height="14"/>'
+   +'<rect x="70" y="218" width="120" height="8"/><rect x="56" y="222" width="148" height="4"/>';
+  s+='<circle class="win" style="--wd:1.2s;fill:#ff6b4a" cx="108" cy="212" r="2.4"/>'
+   +'<circle class="win" style="--wd:2.6s;fill:#ff6b4a" cx="152" cy="212" r="2.4"/>';
+  s+='<rect x="315" y="60" width="50" height="5" rx="2"/>'
+   +'<path d="M322,226 C316,196 318,168 327,150 C318,132 316,96 318,66 L318,64 L362,64 L362,66 C364,96 362,132 353,150 C362,168 364,196 358,226 Z"/>';
+  s+='<rect x="420" y="150" width="34" height="76"/><rect x="435.5" y="130" width="3" height="20"/>'
+   +'<rect x="462" y="170" width="46" height="56"/><path d="M516,226 L516,150 L556,140 L556,226 Z"/>';
+  return s+winGrid(426,158,3,6,10,11,5,6)+winGrid(468,178,4,3,10,14,5,6)+winGrid(522,152,3,6,11,12,5,6);
+};
+const skyBerlin=()=>{
+  let s='<path d="M0,226 V186 Q8,178 14,186 Q22,172 30,184 Q36,178 42,186 L48,226 Z"/>';
+  s+='<rect x="52" y="168" width="70" height="58"/><rect x="526" y="176" width="60" height="50"/>';
+  s+=winGrid(62,176,5,3,12,13,5,6)+winGrid(534,184,4,2,13,14,5,6);
+  s+='<rect x="200" y="96" width="240" height="8"/><rect x="206" y="104" width="228" height="14"/>';
+  [208,242,276,310,344,378,412].forEach(x=>s+=`<rect x="${x}" y="122" width="14" height="104"/>`);
+  s+='<rect x="222" y="78" width="196" height="18"/><rect x="216" y="74" width="208" height="5"/>'
+   +'<rect x="296" y="64" width="48" height="8"/><path d="M322,64 L322,46 L327,46 L327,64 Z"/><circle cx="324.5" cy="42" r="4"/>'
+   +'<path d="M300,64 q4,-9 8,0 M310,64 q4,-9 8,0 M322,64 q4,-9 8,0 M332,64 q4,-9 8,0" fill="none" stroke="#05070c" stroke-width="5"/>';
+  return s;
+};
+const skyTaipei=()=>{
+  let s=filler('taipei',.95);
+  s+='<rect x="330" y="34" width="4" height="36"/>'
+   +'<path d="M306,72 L338,72 L333,44 L311,44 Z"/><path d="M296,104 L348,104 L341,72 L303,72 Z"/>'
+   +'<path d="M290,134 L354,134 L347,104 L297,104 Z"/><path d="M284,164 L360,164 L352,134 L292,134 Z"/>'
+   +'<path d="M278,194 L366,194 L357,164 L287,164 Z"/><path d="M272,226 L372,226 L362,194 L282,194 Z"/>';
+  return s+winGrid(310,198,5,2,6,8,3.5,4)+'<circle class="win" style="--wd:.8s" cx="332" cy="34" r="2.6"/>';
+};
+const skyTokyo=()=>{
+  let s=filler('tokyo',.9);
+  s+='<path fill-rule="evenodd" d="M268,226 Q300,118 316,58 L324,58 Q340,118 372,226 Z M296,226 Q316,140 320,104 Q324,140 344,226 Z"/>'
+   +'<rect x="294" y="130" width="52" height="7" rx="2"/><rect x="303" y="94" width="34" height="6" rx="2"/>'
+   +'<rect x="318.4" y="32" width="3.2" height="26"/>';
+  return s+'<circle class="win" style="--wd:.5s;fill:#ff6b4a" cx="320" cy="30" r="2.4"/>';
+};
+const skyLondon=()=>{
+  let s=filler('london',.8);
+  s+='<rect x="300" y="92" width="28" height="134"/><path d="M300,92 L314,56 L328,92 Z"/><rect x="312.6" y="44" width="2.8" height="14"/>'
+   +'<circle cx="314" cy="120" r="9" fill="#f4c86a" opacity=".92"/>'
+   +'<path d="M314,120 L314,113.5 M314,120 L319,121.5" stroke="#05070c" stroke-width="1.6" stroke-linecap="round" fill="none"/>'
+   +'<rect x="328" y="172" width="92" height="54"/>';
+  [334,350,366,382,398,412].forEach(x=>s+=`<rect x="${x}" y="164" width="3" height="8"/>`);
+  return s+winGrid(336,180,6,3,14,14,6,7);
+};
+const skyParis=()=>{
+  let s=filler('paris',.85);
+  return s
+   +'<g stroke="#05070c" fill="none">'
+   +'<path d="M266,226 Q310,118 318,32" stroke-width="8"/><path d="M374,226 Q330,118 322,32" stroke-width="8"/>'
+   +'<path d="M282,200 L358,178 M358,200 L282,178" stroke-width="2.6"/></g>'
+   +'<rect x="286" y="150" width="68" height="7" rx="2"/><rect x="298" y="102" width="44" height="6" rx="2"/>'
+   +'<rect x="310" y="30" width="20" height="6" rx="2"/><rect x="318.6" y="14" width="2.8" height="18"/>';
+};
+const skyMoscow=()=>{
+  let s=filler('moscow',.8);
+  const onion=(cx,b,w,h)=>`M${cx},${b-h} C${(cx-w*.62).toFixed(1)},${(b-h*.62).toFixed(1)} ${(cx-w*.5).toFixed(1)},${(b-h*.08).toFixed(1)} ${(cx-w*.3).toFixed(1)},${b} L${(cx+w*.3).toFixed(1)},${b} C${(cx+w*.5).toFixed(1)},${(b-h*.08).toFixed(1)} ${(cx+w*.62).toFixed(1)},${(b-h*.62).toFixed(1)} ${cx},${b-h} Z`;
+  s+='<rect x="286" y="186" width="68" height="40"/>'
+   +'<path d="M306,226 L306,124 L320,72 L334,124 L334,226 Z"/>'+onion(320,74,16,20)+'<circle cx="320" cy="50" r="1.8"/>'
+   +'<rect x="262" y="158" width="20" height="68"/>'+onion(272,158,30,36)+'<circle cx="272" cy="118" r="1.8"/>'
+   +'<rect x="358" y="158" width="20" height="68"/>'+onion(368,158,30,36)+'<circle cx="368" cy="118" r="1.8"/>';
+  return s+winGrid(292,194,4,2,13,14,5,6);
+};
+const skyNY=()=>{
+  let s=filler('newyork',1.3);
+  s+='<rect x="288" y="150" width="64" height="76"/><rect x="298" y="118" width="44" height="32"/>'
+   +'<rect x="306" y="92" width="28" height="26"/><rect x="314" y="70" width="12" height="22"/>'
+   +'<rect x="318" y="46" width="4" height="24"/>';
+  return s+winGrid(294,158,5,5,12,13,5,6)+'<circle class="win" style="--wd:.4s" cx="320" cy="44" r="2.4"/>';
+};
+const skySydney=()=>{
+  let s=filler('sydney',.7);
+  return s+'<rect x="204" y="220" width="216" height="6"/>'
+   +'<path d="M212,222 Q222,156 286,138 L286,222 Z"/><path d="M286,222 Q294,164 344,150 L344,222 Z"/>'
+   +'<path d="M344,222 Q350,178 384,168 L384,222 Z"/><path d="M388,222 Q392,192 412,186 L412,222 Z"/>';
+};
+const skyDubai=()=>{
+  let s=filler('dubai',1.15);
+  return s+'<rect x="300" y="150" width="40" height="76"/><rect x="306" y="104" width="28" height="48"/>'
+   +'<rect x="311" y="66" width="18" height="40"/><rect x="315" y="38" width="10" height="30"/>'
+   +'<rect x="319" y="8" width="2" height="32"/>';
+};
+
+/* ════════ 城市資料 ════════ */
+const CITIES={
+  beijing:{zh:'北京',en:'Beijing',tz:'Asia/Shanghai',locale:'zh-CN',sep:':',accent:'#ff5f45',flag:flagCN,sky:skyBeijing},
+  taipei:{zh:'台北',en:'Taipei',tz:'Asia/Taipei',locale:'zh-TW',sep:':',accent:'#5aa7ff',flag:flagTW,sky:skyTaipei},
+  tokyo:{zh:'東京',en:'Tokyo',tz:'Asia/Tokyo',locale:'ja-JP',sep:':',accent:'#ff7e9d',flag:flagJP,sky:skyTokyo},
+  sydney:{zh:'雪梨',en:'Sydney',tz:'Australia/Sydney',locale:'en-AU',sep:':',h12:true,accent:'#5fd6b1',flag:flagAU,sky:skySydney},
+  dubai:{zh:'杜拜',en:'Dubai',tz:'Asia/Dubai',locale:'en-AE',sep:':',accent:'#f2b64c',flag:flagAE,sky:skyDubai},
+  moscow:{zh:'莫斯科',en:'Moscow',tz:'Europe/Moscow',locale:'ru-RU',sep:':',accent:'#8fa4ff',flag:flagRU,sky:skyMoscow},
+  berlin:{zh:'柏林',en:'Berlin',tz:'Europe/Berlin',locale:'de-DE',sep:'.',accent:'#ffd23f',flag:flagDE,sky:skyBerlin},
+  paris:{zh:'巴黎',en:'Paris',tz:'Europe/Paris',locale:'fr-FR',sep:':',accent:'#9fb4ff',flag:flagFR,sky:skyParis},
+  london:{zh:'倫敦',en:'London',tz:'Europe/London',locale:'en-GB',sep:':',accent:'#6fb7ff',flag:flagGB,sky:skyLondon},
+  newyork:{zh:'紐約',en:'New York',tz:'America/New_York',locale:'en-US',sep:':',h12:true,accent:'#ffc94d',flag:flagUS,sky:skyNY},
+};
+const ORDER=['beijing','taipei','tokyo','sydney','dubai','moscow','berlin','paris','london','newyork'];
+
+/* ════════ 時區工具 ════════ */
+const fmtParts={};
+function getParts(tz,ms){
+  fmtParts[tz]=fmtParts[tz]||new Intl.DateTimeFormat('en-US',{
+    timeZone:tz,hour12:false,year:'numeric',month:'numeric',day:'numeric',
+    hour:'numeric',minute:'numeric',second:'numeric'});
+  const o={};
+  for(const p of fmtParts[tz].formatToParts(new Date(ms)))
+    if(p.type!=='literal')o[p.type]=p.value;
+  const h=+o.hour%24;
+  const utc=Date.UTC(+o.year,+o.month-1,+o.day,h,+o.minute,+o.second);
+  return {y:+o.year,mo:+o.month,d:+o.day,h,mi:+o.minute,se:+o.second,
+          offset:Math.round((utc-ms)/60000)};
+}
+const jj={};
+function janJul(tz,y){
+  const k=tz+'|'+y;
+  return jj[k]||(jj[k]={jan:getParts(tz,Date.UTC(y,0,15)).offset,jul:getParts(tz,Date.UTC(y,6,15)).offset});
+}
+function nextTransition(tz,ms){
+  const off0=getParts(tz,ms).offset;
+  for(let d=1;d<=400;d++){
+    const t1=ms+d*864e5;
+    if(getParts(tz,t1).offset!==off0){
+      let a=ms+(d-1)*864e5, b=t1;
+      while(b-a>6e4){const m=(a+b)/2; if(getParts(tz,m).offset===off0)a=m; else b=m;}
+      return b;
+    }
+  }
+  return null;
+}
+const dateFmts={};
+function localeDate(c,ms){
+  const k=c.locale+'|'+c.tz;
+  dateFmts[k]=dateFmts[k]||new Intl.DateTimeFormat(c.locale,{timeZone:c.tz,weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  return dateFmts[k].format(new Date(ms));
+}
+
+/* ════════ 天空顏色 ════════ */
+const mix=(a,b,t)=>[0,1,2].map(i=>Math.round(a[i]+(b[i]-a[i])*t));
+const rgb=c=>`rgb(${c[0]},${c[1]},${c[2]})`;
+function mixMulti(stops,t){
+  for(let i=0;i<stops.length-1;i++){
+    const [p0,c0]=stops[i],[p1,c1]=stops[i+1];
+    if(t<=p1)return mix(c0,c1,(t-p0)/(p1-p0||1));
+  }
+  return stops[stops.length-1][1];
+}
+const SKY={
+  top:[[0,[9,14,32]],[4.6,[9,14,32]],[6.3,[43,54,104]],[8.5,[84,136,205]],[16,[96,148,214]],[18.4,[64,72,134]],[20.2,[16,20,48]],[21.6,[9,14,32]],[24,[9,14,32]]],
+  bot:[[0,[16,22,46]],[4.6,[18,24,50]],[6.3,[196,110,80]],[8.5,[168,204,236]],[16,[178,210,238]],[18.4,[232,120,74]],[20.2,[42,38,74]],[21.6,[16,22,46]],[24,[16,22,46]]]
+};
+const skyAt=t=>`linear-gradient(180deg, ${rgb(mixMulti(SKY.top,t))} 0%, ${rgb(mixMulti(SKY.bot,t))} 100%)`;
+
+/* ════════ 面板初始化 ════════ */
+function buildFace(face){
+  const NS='http://www.w3.org/2000/svg', svg=document.createElementNS(NS,'svg');
+  svg.setAttribute('viewBox','0 0 100 100');
+  for(let i=0;i<60;i++){
+    const maj=i%5===0, a=i*6*Math.PI/180, r1=maj?39.5:42.5, r2=46;
+    const L=document.createElementNS(NS,'line');
+    L.setAttribute('x1',50+r1*Math.sin(a)); L.setAttribute('y1',50-r1*Math.cos(a));
+    L.setAttribute('x2',50+r2*Math.sin(a)); L.setAttribute('y2',50-r2*Math.cos(a));
+    if(maj)L.setAttribute('class','mj');
+    svg.appendChild(L);
+  }
+  face.appendChild(svg);
+  const label=document.createElement('div');
+  label.style.cssText='position:absolute;left:50%;top:66%;transform:translateX(-50%);font:600 9px var(--disp);letter-spacing:.32em;opacity:.62';
+  face.appendChild(label);
+  return label;
+}
+function seedStars(el,n){
+  for(let i=0;i<n;i++){
+    const s=document.createElement('i');
+    s.style.left=Math.random()*100+'%'; s.style.top=Math.random()*100+'%';
+    if(Math.random()<.25){s.style.width='3px';s.style.height='3px';}
+    s.style.setProperty('--d',(2+Math.random()*3.2)+'s');
+    s.style.setProperty('--dl',(Math.random()*4)+'s');
+    el.appendChild(s);
+  }
+}
+
+const slots=$$('.city').map(sec=>({
+  sec, city:null, nextTr:null,
+  prev:{hh:'',mm:'',ss:'',date:'',dst:null,offStr:'',ampm:'',ang:null,trans:false,sky:''},
+  ui:{
+    sky:$('[data-sky]',sec), stars:$('[data-stars]',sec), clouds:$('[data-clouds]',sec),
+    cel:$('[data-celestial]',sec), picker:$('[data-picker]',sec),
+    flag:$('[data-flag]',sec), name:$('.city-name',sec), sub:$('.city-sub',sec),
+    skyline:$('.skyline',sec),
+    hh:$('[data-hh]',sec), mm:$('[data-mm]',sec), ss:$('[data-ss]',sec),
+    ampm:$('[data-ampm]',sec), date:$('[data-date]',sec),
+    utcoff:$('[data-utcoff]',sec), dst:$('[data-dst]',sec),
+    H:$('[data-h]',sec), M:$('[data-m]',sec), S:$('[data-s]',sec),
+    sepEls:$$('.sep',sec),
+    faceLabel:buildFace($('[data-face]',sec))
+  }
+}));
+slots.forEach(s=>seedStars(s.ui.stars,50));
+
+/* ════════ 城市切換 ════════ */
+function applyCity(slot,id,animate=true){
+  const c=CITIES[id];
+  slot.city=id; slot.nextTr=null;
+  slot.prev={hh:'',mm:'',ss:'',date:'',dst:null,offStr:'',ampm:'',ang:null,trans:false,sky:''};
+  slot.sec.style.setProperty('--accent',c.accent);
+  slot.ui.flag.innerHTML=c.flag();
+  slot.ui.name.textContent=c.zh;
+  slot.ui.sub.textContent=`${c.en} ・ ${c.tz.replace('_',' ')}`;
+  slot.ui.faceLabel.textContent=c.en.toUpperCase();
+  slot.ui.sepEls.forEach(s=>s.textContent=c.sep);
+  slot.ui.skyline.innerHTML=`<svg viewBox="0 0 640 240">${GROUND}${c.sky()}</svg>`;
+  $$('.pk-btn',slot.ui.picker).forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.city===id)));
+  if(animate){
+    slot.sec.classList.remove('swap'); void slot.sec.offsetWidth; slot.sec.classList.add('swap');
+    setTimeout(()=>slot.sec.classList.remove('swap'),600);
+  }
+  save();
+}
+function pick(slot,id){
+  if(slot.city===id)return;
+  const other=slots.find(s=>s!==slot);
+  if(other.city===id){                       // 已在對側 → 兩邊交換
+    const a=slot.city;
+    applyCity(other,a); applyCity(slot,id);
+    return;
+  }
+  applyCity(slot,id);
+}
+slots.forEach(slot=>{
+  ORDER.forEach(id=>{
+    const c=CITIES[id], b=document.createElement('button');
+    b.type='button'; b.className='pk-btn'; b.dataset.city=id;
+    b.innerHTML=`<span class="pk-flag">${c.flag()}</span>${c.zh}`;
+    b.addEventListener('click',()=>pick(slot,id));
+    slot.ui.picker.appendChild(b);
+  });
+});
+function save(){try{localStorage.setItem('dualclock.cities',JSON.stringify([slots[0].city,slots[1].city]));}catch(e){}}
+function load(){
+  try{
+    const v=JSON.parse(localStorage.getItem('dualclock.cities'));
+    if(Array.isArray(v)&&v.every(x=>CITIES[x])&&v[0]!==v[1])return v;
+  }catch(e){}
+  return ['beijing','berlin'];
+}
+applyCity(slots[0],load()[0],false);
+applyCity(slots[1],load()[1],false);
+
+/* ════════ 每格更新 ════════ */
+function paint(slot,ms){
+  const c=CITIES[slot.city], p=getParts(c.tz,ms);
+  const t=p.h+p.mi/60+p.se/3600, pv=slot.prev, ui=slot.ui;
+
+  let degH,degM,degS;
+  if(!pv.ang){
+    degS=(p.se+ms%1000/1000)*6; degM=(p.mi+p.se/60)*6; degH=((p.h%12)+p.mi/60+p.se/3600)*30;
+  }else{
+    const step=(ms-pv.ms)/1000;
+    degS=pv.ang[0]+step*6; degM=pv.ang[1]+step*.1; degH=pv.ang[2]+step/120;
+  }
+  pv.ang=[degS,degM,degH]; pv.ms=ms;
+  ui.S.style.transition=pv.trans?'':'none';
+  ui.H.style.transform=`rotate(${degH}deg)`;
+  ui.M.style.transform=`rotate(${degM}deg)`;
+  ui.S.style.transform=`rotate(${degS}deg)`;
+  pv.trans=true;
+
+  /* 數位時間（紐約／雪梨採 12 小時制 + AM/PM） */
+  const dh=c.h12?(p.h%12||12):p.h;
+  if(String(dh)!==pv.hh){ ui.hh.textContent=c.h12?String(dh):pad(dh); pv.hh=String(dh); }
+  if(p.mi!==pv.mm){ ui.mm.textContent=pad(p.mi); pv.mm=p.mi; }
+  if(p.se!==pv.ss){ ui.ss.textContent=pad(p.se); pv.ss=p.se; }
+  const ap=c.h12?(p.h<12?'AM':'PM'):'';
+  if(ap!==pv.ampm){ ui.ampm.textContent=ap; pv.ampm=ap; }
+
+  /* 日期（依各城市語言） */
+  const dk=p.d+'-'+p.mo;
+  if(dk!==pv.date){ ui.date.textContent=localeDate(c,ms); pv.date=dk; }
+
+  /* UTC 偏移 */
+  const sign=p.offset<0?'−':'＋', ah=Math.abs(p.offset)/60;
+  const offStr=`UTC${sign}${Number.isInteger(ah)?ah:ah.toFixed(1).replace('.',',')}`;
+  if(offStr!==pv.offStr){ ui.utcoff.textContent=offStr; pv.offStr=offStr; }
+
+  /* 夏令狀態＋下次切換日 */
+  const {jan,jul}=janJul(c.tz,p.y);
+  const hasDST=jan!==jul;
+  let txt;
+  if(!hasDST) txt='無夏令時間・全年固定';
+  else{
+    if(!slot.nextTr||ms>=slot.nextTr) slot.nextTr=nextTransition(c.tz,ms)||Infinity;
+    const active=p.offset===Math.max(jan,jul);
+    let tail='';
+    if(slot.nextTr!==Infinity){
+      const d=new Date(slot.nextTr);
+      tail=`・下次切換約 ${d.getUTCMonth()+1}/${d.getUTCDate()}`;
+    }
+    txt=(active?'☀ 夏令時間中':'❄ 標準時間')+tail;
+  }
+  if(txt!==pv.dst){ ui.dst.textContent=txt; pv.dst=txt; }
+
+  /* 天空、日夜、星星、雲 */
+  const sky=skyAt(t);
+  if(sky!==pv.sky){ ui.sky.style.background=sky; pv.sky=sky; }
+  const night=t<5.4||t>18.9, dawnDusk=(t>=5.4&&t<8)||(t>16.8&&t<=18.9);
+  ui.stars.style.opacity=night?1:0;
+  ui.clouds.style.opacity=(!night&&!dawnDusk)?.8:(dawnDusk?.3:0);
+
+  const isDay=t>=6&&t<18;
+  let frac,el2;
+  if(isDay){ frac=(t-6)/12; el2=Math.sin(Math.PI*frac)*62+12; ui.cel.classList.add('sun'); ui.cel.classList.remove('moon'); }
+  else{
+    const tn=(t>=18)?t-18:t+6; frac=tn/12; el2=Math.sin(Math.PI*frac)*48+10;
+    ui.cel.classList.remove('sun'); ui.cel.classList.add('moon');
+  }
+  ui.cel.style.left=(7+frac*86)+'%';
+  ui.cel.style.top=(74-el2)+'%';
+  ui.cel.style.opacity=(night&&el2<6)?0:1;
+}
+
+/* ════════ 時差橋 ════════ */
+const offBig=$('#offsetBig'), offNote=$('#offsetNote');
+const bFlags=[$('[data-bflag="0"]'),$('[data-bflag="1"]')];
+const bCache={key:'',big:'',note:''};
+function fmtOff(o){const s=o<0?'−':'＋',a=Math.abs(o)/60;return `UTC${s}${Number.isInteger(a)?a:a.toFixed(1).replace('.',',')}`;}
+function bridge(ms){
+  const A=CITIES[slots[0].city], B=CITIES[slots[1].city];
+  const key=slots[0].city+'|'+slots[1].city;
+  if(key!==bCache.key){
+    bFlags[0].innerHTML=A.flag(); bFlags[1].innerHTML=B.flag();
+    document.title=`${A.zh} ✕ ${B.zh}｜雙城時鐘`;
+    bCache.key=key;
+  }
+  const pa=getParts(A.tz,ms), pb=getParts(B.tz,ms);
+  const diff=(pb.offset-pa.offset)/60;
+  const big=diff===0?'0 小時':`${diff>0?'＋':'−'}${Number.isInteger(Math.abs(diff))?Math.abs(diff):Math.abs(diff).toFixed(1)} 小時`;
+  if(big!==bCache.big){ offBig.textContent=big; bCache.big=big; }
+  const tag=(tz,off)=>{
+    const y=new Date(ms).getUTCFullYear(), {jan,jul}=janJul(tz,y);
+    if(jan===jul)return '';
+    return off===Math.max(jan,jul)?'・夏令':'・冬令';
+  };
+  const note=`${A.zh} ${fmtOff(pa.offset)}${tag(A.tz,pa.offset)} ・ ${B.zh} ${fmtOff(pb.offset)}${tag(B.tz,pb.offset)}`;
+  if(note!==bCache.note){ offNote.textContent=note; bCache.note=note; }
+}
+
+/* ════════ 主迴圈 ════════ */
+function tick(){
+  const ms=Date.now();
+  slots.forEach(s=>paint(s,ms));
+  bridge(ms);
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
